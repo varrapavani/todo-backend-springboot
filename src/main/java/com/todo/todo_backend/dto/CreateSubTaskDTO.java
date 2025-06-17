@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class CreateSubTaskDTO {
-    private Long todoId;   // This links subtask to parent Todo
+    private Long todoId;
     private String task;
 }

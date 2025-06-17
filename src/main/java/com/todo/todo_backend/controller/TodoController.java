@@ -5,11 +5,15 @@ import com.todo.todo_backend.dto.SubTaskDTO;
 import com.todo.todo_backend.dto.TodoDTO;
 import com.todo.todo_backend.models.SubTask;
 import com.todo.todo_backend.models.Todo;
+import com.todo.todo_backend.repository.SubtaskRepository;
 import com.todo.todo_backend.repository.TodoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -17,6 +21,8 @@ import java.util.List;
 public class TodoController {
     @Autowired
     private TodoRepository todoRepository;
+    @Autowired
+    private SubtaskRepository subtaskRepository;
 
     @GetMapping("/todos")
     public List<TodoDTO> getAllTodos() {
@@ -83,5 +89,26 @@ public class TodoController {
         System.out.println("Saved subtask to DB under Todo: " + saved.getId());
         return saved;
     }
+
+    @PutMapping("/toggleSubTask")
+    public List<Todo> toggleSubTask(@RequestBody Map<String, Long> payload) {
+        Long taskId = payload.get("taskId");
+        System.out.println("task id ===> " + taskId);
+        SubTask subTask = subtaskRepository.findById(taskId).orElseThrow();
+        subTask.setDone(!subTask.isDone());
+        subtaskRepository.save(subTask);
+        return todoRepository.findAll();
+    }
+
+    @DeleteMapping("/deleteTodo/{id}")
+    public ResponseEntity<String> deleteTodo(@PathVariable Long id) {
+        if (!todoRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Todo not found");
+        }
+
+        todoRepository.deleteById(id);  // JPA will handle cascade delete
+        return ResponseEntity.ok("Todo and its subtasks deleted successfully");
+    }
+
 
 }
