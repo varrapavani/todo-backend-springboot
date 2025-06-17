@@ -1,5 +1,6 @@
 package com.todo.todo_backend.controller;
 
+import com.todo.todo_backend.dto.CreateSubTaskDTO;
 import com.todo.todo_backend.dto.SubTaskDTO;
 import com.todo.todo_backend.dto.TodoDTO;
 import com.todo.todo_backend.models.SubTask;
@@ -62,5 +63,25 @@ public class TodoController {
         return savedTodo;
     }
 
+    @PostMapping("/addSubTask")
+    public Todo createSubTask(@RequestBody CreateSubTaskDTO dto) {
+        System.out.println("Received request to create SubTask for todoId: " + dto.getTodoId());
+        System.out.println("Received request to create SubTask : " + dto.getTask());
+
+        Todo todo = todoRepository.findById(dto.getTodoId())
+                .orElseThrow(() -> new RuntimeException("Todo not found with id: " + dto.getTodoId()));
+
+        SubTask subTask = new SubTask();
+        subTask.setTask(dto.getTask());
+        subTask.setDone(false);
+        subTask.setTodo(todo);  // link subtask to parent
+
+        // Optional: if cascade is set on Todo -> SubTask
+        todo.getSubtask().add(subTask);
+
+        Todo saved = todoRepository.save(todo);
+        System.out.println("Saved subtask to DB under Todo: " + saved.getId());
+        return saved;
+    }
 
 }
